@@ -1,0 +1,5 @@
+*.o
+dungeon_quest
+dungeon_quest.exe
+save*.dat
+highscores.txt
