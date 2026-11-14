@@ -7,6 +7,7 @@ OBJS  += items.o
 OBJS  += dungeon.o
 OBJS  += combat.o
 OBJS  += shop.o
+OBJS  += save.o
 
 dungeon_quest: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)

@@ -1,6 +1,8 @@
 /* main.c - menu and main game loop */
 #include "game.h"
 
+static int currentSlot = 0;        /* save slot of the running game (0 = none) */
+
 static void showIntro(void)
 {
     printf("\n==============================================\n");
@@ -75,6 +77,11 @@ static void gameOver(const Player *p, int won)
     if (won) score += 500;
     printf("Final score: %d\n", score);
     printf("Level %d | Steps %d | Monsters slain %d | Gold %d\n", p->level, p->steps, p->kills, p->gold);
+    updateHighScores(p->name, score, (int)p->cls);
+    if (currentSlot > 0) {                /* the run is over, so delete its save */
+        deleteSave(currentSlot);
+        currentSlot = 0;
+    }
 }
 
 static void printStatus(const Dungeon *d, const Player *p)
@@ -88,6 +95,22 @@ static void printStatus(const Dungeon *d, const Player *p)
     printf("\n");
 }
 
+/* shows the save slots and asks which one to use; returns 0 if cancelled */
+static int chooseSlot(const char *action)
+{
+    printf("\n--- %s: choose a slot ---\n", action);
+    for (int s = 1; s <= MAX_SLOTS; s++) {
+        char info[96];
+        if (slotInfo(s, info, sizeof(info)))
+            printf("  %d. %s\n", s, info);
+        else
+            printf("  %d. (empty)\n", s);
+    }
+    printf("Slot number (0 to cancel): ");
+    int n = getNumber();
+    return (n >= 1 && n <= MAX_SLOTS) ? n : 0;
+}
+
 static void gameLoop(Player *p, Dungeon *d)
 {
     int running = 1;
@@ -96,6 +119,7 @@ static void gameLoop(Player *p, Dungeon *d)
         printDungeon(d, p);
         printStatus(d, p);
         printf("[w/a/s/d] move  [i] inventory  [c] stats  ");
+        printf("[v] save  ");
         printf("[q] quit: ");
 
         char ch = getChoice();
@@ -125,6 +149,18 @@ static void gameLoop(Player *p, Dungeon *d)
             case 'c':
                 showStats(p);
                 break;
+            case 'v': {
+                int slot = chooseSlot("Save");
+                if (slot > 0) {
+                    if (saveGame(p, d, slot)) {
+                        currentSlot = slot;
+                        printf("Game saved to slot %d.\n", slot);
+                    } else {
+                        printf("Could not save the game.\n");
+                    }
+                }
+                break;
+            }
             case 'q':
                 printf("Return to the menu? Unsaved progress is lost. (y/n): ");
                 if (getChoice() == 'y')
@@ -146,8 +182,27 @@ static void playNewGame(void)
 {
     Player *p = createHero();
     printf("\nWelcome, %s the %s!\n", p->name, className(p->cls));
+    currentSlot = 0;
     Dungeon d;
     generateDungeon(&d, p);
+    gameLoop(p, &d);
+    freePlayer(p);
+}
+
+static void loadGameMenu(void)
+{
+    int slot = chooseSlot("Load");
+    if (slot == 0)
+        return;
+
+    Dungeon d;
+    Player *p = loadGame(&d, slot);
+    if (p == NULL) {
+        printf("That slot is empty or the save file is damaged.\n");
+        return;
+    }
+    currentSlot = slot;
+    printf("\nWelcome back, %s the %s!\n", p->name, className(p->cls));
     gameLoop(p, &d);
     freePlayer(p);
 }
@@ -166,6 +221,8 @@ int main(void)
         int options[8];
         int n = 0;
         options[n++] = M_NEW;
+        options[n++] = M_LOAD;
+        options[n++] = M_SCORES;
         options[n++] = M_HELP;
         options[n++] = M_EXIT;
 
@@ -182,6 +239,8 @@ int main(void)
 
         switch (options[choice - 1]) {
             case M_NEW:      playNewGame();   break;
+            case M_LOAD:     loadGameMenu();  break;
+            case M_SCORES:   showHighScores(); break;
             case M_HELP:     showHelp();      break;
             case M_EXIT:     running = 0;     break;
             default:         break;

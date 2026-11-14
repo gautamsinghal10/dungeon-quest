@@ -32,6 +32,9 @@
 #define T_SHOP     'S'
 #define T_FOUNTAIN 'F'
 #define SHOP_SLOTS     3
+#define MAX_SLOTS      3
+#define MAX_SCORES     5
+#define SCORE_FILE     "highscores.txt"
 
 /* ---------- data types ---------- */
 typedef enum { CLASS_WARRIOR, CLASS_MAGE, CLASS_ROGUE, CLASS_COUNT } ClassType;
@@ -93,6 +96,11 @@ typedef struct {
     int  shopSold[SHOP_SLOTS];
 } Dungeon;
 
+typedef struct {
+    char name[NAME_LEN];
+    int  score;
+    int  cls;
+} ScoreEntry;
 
 
 /* ---------- utils.c ---------- */
@@ -140,5 +148,12 @@ void nextFloor(Player *p, Dungeon *d);
 void stockShop(Dungeon *d, int floor);
 void openShop(Player *p, Dungeon *d);
 
+/* ---------- save.c ---------- */
+int     saveGame(const Player *p, const Dungeon *d, int slot);
+Player *loadGame(Dungeon *d, int slot);
+int     slotInfo(int slot, char *buf, size_t n);
+void    deleteSave(int slot);
+void    updateHighScores(const char *name, int score, int cls);
+void    showHighScores(void);
 
 #endif

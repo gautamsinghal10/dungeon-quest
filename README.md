@@ -19,6 +19,7 @@ Or use `make`.
 - Gold, chests, traps, loot drops, 5 floors and a final boss
 - Class skills with mana, critical hits, poison, life-drain and a boss that enrages
 - Wandering merchant (buy and sell) and healing fountains
+- 3 save slots (binary files) and a top-5 high-score table (text file)
 
 ## Controls
 
@@ -27,6 +28,7 @@ Or use `make`.
 | w / a / s / d | move up / left / down / right (then Enter) |
 | i | open backpack (use or equip items) |
 | c | show stats |
+| v | save game |
 | q | quit to menu |
 
 ## Map symbols
