@@ -126,6 +126,7 @@ int movePlayer(Player *p, Dungeon *d, char dir)
     p->y = ny;
     p->steps++;
     revealAround(d, nx, ny);
+    p->mana = MIN(p->maxMana, p->mana + 1);       /* mana slowly comes back */
     return 1;
 }
 
@@ -133,6 +134,13 @@ int movePlayer(Player *p, Dungeon *d, char dir)
 int handleTile(Player *p, Dungeon *d, int prevX, int prevY)
 {
     char *tile = &d->cells[p->y][p->x];      /* pointer to the current cell */
+
+    if (p->poisonTurns > 0) {
+        p->poisonTurns--;
+        p->hp -= 2;
+        printf("\nPoison burns you for 2 damage.\n");
+        if (p->hp <= 0) return -1;
+    }
 
     switch (*tile) {
         case T_MONSTER: {
@@ -175,6 +183,8 @@ int handleTile(Player *p, Dungeon *d, int prevX, int prevY)
             printf("\nThe Dragon Lord rises from his throne!\n");
             return (fight(p, &boss, 1) == 1) ? 2 : -1;
         }
+            p->mana = p->maxMana;
+            p->poisonTurns = 0;
         default:
             break;
     }
@@ -187,6 +197,7 @@ void nextFloor(Player *p, Dungeon *d)
     p->x = 0;
     p->y = 0;
     p->hp = MIN(p->maxHp, p->hp + p->maxHp / 4);      /* a short rest */
+    p->mana = MIN(p->maxMana, p->mana + p->maxMana / 4);
     printf("You descend to floor %d and rest for a moment.\n", p->floor);
     generateDungeon(d, p);
 }

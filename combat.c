@@ -23,6 +23,48 @@ static const MonsterTemplate monsterTable[] = {
 };
 #define MONSTER_TYPES ((int)(sizeof(monsterTable) / sizeof(monsterTable[0])))
 
+/* ---------- class skills ---------- */
+typedef struct {
+    const char *name;
+    int cost;
+} Skill;
+
+static const Skill skillTable[CLASS_COUNT] = {
+    {"Power Strike", 8},      /* Warrior */
+    {"Fireball",    10},      /* Mage    */
+    {"Backstab",     8}       /* Rogue   */
+};
+
+const char *skillName(ClassType c) { return skillTable[c].name; }
+int skillCost(ClassType c)         { return skillTable[c].cost; }
+
+/* returns 1 if the skill was used, 0 if there was not enough mana */
+static int useSkill(Player *p, Monster *m)
+{
+    const Skill *s = &skillTable[p->cls];
+    if (p->mana < s->cost) {
+        printf("Not enough mana! %s needs %d.\n", s->name, s->cost);
+        return 0;
+    }
+    p->mana -= s->cost;
+
+    int dmg;
+    switch (p->cls) {
+        case CLASS_WARRIOR:             /* double damage */
+            dmg = MAX(1, totalAttack(p) * 2 - m->defense + rand() % 4);
+            break;
+        case CLASS_MAGE:                /* magic ignores defense */
+            dmg = totalAttack(p) * 2 + p->level * 2;
+            break;
+        default:                        /* rogue: double damage, half the defense counts */
+            dmg = MAX(1, (totalAttack(p) - m->defense / 2) * 2 + rand() % 6);
+            break;
+    }
+    m->hp -= dmg;
+    printf("You use %s on the %s for %d damage!\n", s->name, m->name, dmg);
+    return 1;
+}
+
 Monster makeMonster(int floor, int isBoss)
 {
     Monster m;
@@ -63,19 +105,37 @@ static int calcPlayerDamage(const Player *p, const Monster *m, int *isCrit)
 {
     int dmg = MAX(1, totalAttack(p) - m->defense + rand() % 4);
     *isCrit = 0;
+    int critChance = (p->cls == CLASS_ROGUE) ? 25 : 10;
+    if (rand() % 100 < critChance) {
+        dmg *= 2;
+        *isCrit = 1;
+    }
     return dmg;
 }
 
 static void monsterTurn(Player *p, Monster *m)
 {
     int dmg = MAX(1, m->attack - totalDefense(p) / 2 + rand() % 3);
+    if (p->cls == CLASS_ROGUE && rand() % 100 < 15) {
+        printf("You nimbly dodge the %s's attack!\n", m->name);
+        return;
+    }
     p->hp -= dmg;
     printf("The %s hits you for %d damage.\n", m->name, dmg);
+    if (m->special == SPECIAL_POISON && rand() % 100 < 40) {
+        p->poisonTurns = 3;
+        printf("You have been poisoned!\n");
+    } else if (m->special == SPECIAL_DRAIN) {
+        int heal = dmg / 2;
+        m->hp = MIN(m->maxHp, m->hp + heal);
+        printf("The %s drains %d HP from you!\n", m->name, heal);
+    }
 }
 
 /* returns 1 = player won, 0 = player died, 2 = player fled */
 int fight(Player *p, Monster *m, int isBoss)
 {
+    int enraged = 0;
     printf("\n*** A %s appears! (HP %d, ATK %d) ***\n", m->name, m->hp, m->attack);
     if (isBoss)
         printf("There is no escape from this fight!\n");
@@ -83,6 +143,7 @@ int fight(Player *p, Monster *m, int isBoss)
     while (p->hp > 0 && m->hp > 0) {
         printf("\n%s HP: %d/%d   |   %s HP: %d/%d\n", p->name, p->hp, p->maxHp, m->name, m->hp, m->maxHp);
         printf("[a] attack  ");
+        printf("[s] %s (%d/%d mana)  ", skillName(p->cls), p->mana, p->maxMana);
         printf("[u] use item  ");
         if (!isBoss) printf("[f] flee");
         printf(": ");
@@ -95,6 +156,10 @@ int fight(Player *p, Monster *m, int isBoss)
             m->hp -= dmg;
             if (crit) printf("CRITICAL HIT! ");
             printf("You hit the %s for %d damage.\n", m->name, dmg);
+        }
+        else if (choice == 's') {
+            if (!useSkill(p, m))
+                continue;                      /* no mana: the turn is not used */
         }
         else if (choice == 'u') {
             if (p->invCount == 0) {
@@ -121,8 +186,21 @@ int fight(Player *p, Monster *m, int isBoss)
         }
 
         if (m->hp > 0) {
+            if (isBoss && !enraged && m->hp < m->maxHp / 2) {
+                enraged = 1;
+                m->attack += m->attack / 3;
+                printf("The Dragon Lord roars in rage! His attacks grow stronger!\n");
+            }
             monsterTurn(p, m);
         }
+
+        /* end of the round */
+        if (p->hp > 0 && p->poisonTurns > 0) {
+            p->poisonTurns--;
+            p->hp -= 2;
+            printf("Poison burns you for 2 damage.\n");
+        }
+        p->mana = MIN(p->maxMana, p->mana + 2);
     }
 
     if (p->hp <= 0)

@@ -14,6 +14,9 @@ static const ClassInfo classTable[CLASS_COUNT] = {
     {"Rogue",   55, 8, 2,  9, 2, 1, "Dodges attacks and lands critical hits."}
 };
 
+/* starting mana of each class */
+static const int classMana[CLASS_COUNT] = {20, 50, 30};
+
 const char *className(ClassType c)
 {
     return classTable[c].name;
@@ -25,6 +28,7 @@ void showClassList(void)
         const ClassInfo *c = &classTable[i];
         printf("  %d. %-8s HP %d  ATK %d  DEF %d\n", i + 1, c->name, c->hp, c->attack, c->defense);
         printf("     %s\n", c->desc);
+        printf("     Skill: %s (%d mana)\n", skillName((ClassType)i), skillCost((ClassType)i));
     }
 }
 
@@ -55,6 +59,9 @@ Player *createPlayer(const char *name, ClassType cls)
     p->inventory = (Item *)malloc(sizeof(Item) * p->invCap);
     if (p->inventory == NULL) { printf("Out of memory!\n"); exit(1); }
     addItem(p, makeItem("Small Potion", ITEM_POTION, 25, 10));    /* starter item */
+    p->maxMana = classMana[cls];
+    p->mana = p->maxMana;
+    p->poisonTurns = 0;
     return p;
 }
 
@@ -85,6 +92,9 @@ void showStats(const Player *p)
     printf("\n--- %s the %s ---\n", p->name, className(p->cls));
     printf("Level %d   XP %d/%d\n", p->level, p->xp, xpNeeded(p->level));
     printf("HP %d/%d   Attack %d   Defense %d\n", p->hp, p->maxHp, totalAttack(p), totalDefense(p));
+    printf("Mana %d/%d", p->mana, p->maxMana);
+    if (p->poisonTurns > 0) printf("   (POISONED for %d more turns)", p->poisonTurns);
+    printf("\n");
     printf("Gold %d\n", p->gold);
     printf("Monsters slain %d   Floor %d/%d\n", p->kills, p->floor, MAX_FLOORS);
     printf("Weapon: ");
@@ -130,6 +140,16 @@ void useItem(Player *p, int index)
             int before = p->hp;
             p->hp = MIN(p->maxHp, p->hp + chosen.effect.healAmount);
             printf("You drink the %s and recover %d HP.\n", chosen.name, p->hp - before);
+            if (p->poisonTurns > 0) {
+                p->poisonTurns = 0;
+                printf("The potion also cures your poison.\n");
+            }
+            break;
+        }
+        case ITEM_ELIXIR: {
+            int before = p->mana;
+            p->mana = MIN(p->maxMana, p->mana + chosen.effect.manaAmount);
+            printf("You drink the %s and recover %d mana.\n", chosen.name, p->mana - before);
             break;
         }
         case ITEM_WEAPON: {
@@ -194,6 +214,8 @@ void gainXp(Player *p, int amount)
         p->hp = p->maxHp;
         p->baseAttack += c->attackGain;
         p->baseDefense += c->defenseGain;
+        p->maxMana += (p->cls == CLASS_MAGE) ? 6 : 3;
+        p->mana = p->maxMana;
         printf("*** LEVEL UP! You are now level %d. HP restored! ***\n", p->level);
     }
 }

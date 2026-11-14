@@ -36,6 +36,7 @@
 typedef enum { CLASS_WARRIOR, CLASS_MAGE, CLASS_ROGUE, CLASS_COUNT } ClassType;
 typedef enum {
     ITEM_POTION,
+    ITEM_ELIXIR,
     ITEM_WEAPON,
     ITEM_ARMOR
 } ItemType;
@@ -43,6 +44,7 @@ typedef enum {
 /* only one effect is used at a time, so a union saves memory */
 typedef union {
     int healAmount;      /* potion */
+    int manaAmount;      /* elixir */
     int attackBonus;     /* weapon */
     int defenseBonus;    /* armor  */
 } ItemEffect;
@@ -68,6 +70,8 @@ typedef struct {
     int       invCount, invCap;
     Item      weapon, armor;        /* equipped items */
     int       hasWeapon, hasArmor;
+    int       mana, maxMana;
+    int       poisonTurns;
 } Player;
 
 #define SPECIAL_NONE   0
@@ -117,6 +121,8 @@ void printItem(const Item *it);
 /* ---------- combat.c ---------- */
 Monster makeMonster(int floor, int isBoss);
 int     fight(Player *p, Monster *m, int isBoss);
+const char *skillName(ClassType c);
+int         skillCost(ClassType c);
 
 /* ---------- dungeon.c ---------- */
 void generateDungeon(Dungeon *d, const Player *p);

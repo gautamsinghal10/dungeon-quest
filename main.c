@@ -81,6 +81,8 @@ static void printStatus(const Dungeon *d, const Player *p)
 {
     (void)d;
     printf("HP %d/%d", p->hp, p->maxHp);
+    printf(" | MP %d/%d", p->mana, p->maxMana);
+    if (p->poisonTurns > 0) printf(" | POISONED");
     printf(" | Lv %d | Gold %d", p->level, p->gold);
     printf(" | Monsters left: %d", countMonsters(d, 0));
     printf("\n");

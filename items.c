@@ -11,6 +11,7 @@ Item makeItem(const char *name, ItemType type, int value, int price)
     /* the same memory holds whichever effect matches the item type */
     switch (type) {
         case ITEM_POTION: it.effect.healAmount   = value; break;
+        case ITEM_ELIXIR: it.effect.manaAmount   = value; break;
         case ITEM_WEAPON: it.effect.attackBonus  = value; break;
         case ITEM_ARMOR:  it.effect.defenseBonus = value; break;
     }
@@ -34,6 +35,9 @@ Item randomItem(int floor)
         const char *name = (floor <= 2) ? "Small Potion" : (floor <= 4) ? "Health Potion" : "Large Potion";
         int heal = 20 + floor * 8;
         return makeItem(name, ITEM_POTION, heal, 10 + floor * 5);
+    } else if (roll < 50) {
+        int mana = 15 + floor * 5;
+        return makeItem("Mana Elixir", ITEM_ELIXIR, mana, 15 + floor * 5);
     } else if (roll < 75) {
         int bonus = weaponBonus[tier] + rand() % 2;
         return makeItem(weapons[tier], ITEM_WEAPON, bonus, bonus * 15);
@@ -47,6 +51,7 @@ void printItem(const Item *it)
 {
     switch (it->type) {
         case ITEM_POTION: printf("%s (heals %d HP)", it->name, it->effect.healAmount);   break;
+        case ITEM_ELIXIR: printf("%s (restores %d mana)", it->name, it->effect.manaAmount); break;
         case ITEM_WEAPON: printf("%s (+%d attack)",  it->name, it->effect.attackBonus);  break;
         case ITEM_ARMOR:  printf("%s (+%d defense)", it->name, it->effect.defenseBonus); break;
     }
