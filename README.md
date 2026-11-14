@@ -18,6 +18,7 @@ Or use `make`.
 - Turn-based combat, XP and levelling, 10 monster types
 - Gold, chests, traps, loot drops, 5 floors and a final boss
 - Class skills with mana, critical hits, poison, life-drain and a boss that enrages
+- Wandering merchant (buy and sell) and healing fountains
 
 ## Controls
 

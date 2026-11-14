@@ -79,6 +79,9 @@ void generateDungeon(Dungeon *d, const Player *p)
     placeRandom(d, reach, T_GOLD, 3);
     placeRandom(d, reach, T_CHEST, 2);
     placeRandom(d, reach, T_TRAP, 2 + p->floor / 2);
+    placeRandom(d, reach, T_SHOP, 1);
+    placeRandom(d, reach, T_FOUNTAIN, 1);
+    stockShop(d, p->floor);
 
     revealAround(d, 0, 0);
 }
@@ -183,8 +186,18 @@ int handleTile(Player *p, Dungeon *d, int prevX, int prevY)
             printf("\nThe Dragon Lord rises from his throne!\n");
             return (fight(p, &boss, 1) == 1) ? 2 : -1;
         }
+        case T_SHOP:
+            openShop(p, d);
+            break;
+        case T_FOUNTAIN: {
+            printf("\nYou drink from the glowing fountain.\n");
+            p->hp = MIN(p->maxHp, p->hp + p->maxHp / 2);
             p->mana = p->maxMana;
             p->poisonTurns = 0;
+            printf("HP restored to %d/%d. The fountain dries up.\n", p->hp, p->maxHp);
+            *tile = T_EMPTY;
+            break;
+        }
         default:
             break;
     }

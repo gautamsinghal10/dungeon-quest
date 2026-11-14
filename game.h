@@ -31,6 +31,7 @@
 #define T_BOSS     'B'
 #define T_SHOP     'S'
 #define T_FOUNTAIN 'F'
+#define SHOP_SLOTS     3
 
 /* ---------- data types ---------- */
 typedef enum { CLASS_WARRIOR, CLASS_MAGE, CLASS_ROGUE, CLASS_COUNT } ClassType;
@@ -88,6 +89,8 @@ typedef struct {
 typedef struct {
     char cells[MAP_SIZE][MAP_SIZE];
     int  seen[MAP_SIZE][MAP_SIZE];      /* 1 = revealed to the player */
+    Item shopItem[SHOP_SLOTS];
+    int  shopSold[SHOP_SLOTS];
 } Dungeon;
 
 
@@ -133,6 +136,9 @@ int  handleTile(Player *p, Dungeon *d, int prevX, int prevY);
 int  countMonsters(const Dungeon *d, int idx);   /* recursive */
 void nextFloor(Player *p, Dungeon *d);
 
+/* ---------- shop.c ---------- */
+void stockShop(Dungeon *d, int floor);
+void openShop(Player *p, Dungeon *d);
 
 
 #endif
