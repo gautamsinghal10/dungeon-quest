@@ -125,6 +125,7 @@ int  movePlayer(Player *p, Dungeon *d, char dir);
 void revealAll(Dungeon *d);
 int  handleTile(Player *p, Dungeon *d, int prevX, int prevY);
 int  countMonsters(const Dungeon *d, int idx);   /* recursive */
+void nextFloor(Player *p, Dungeon *d);
 
 
 

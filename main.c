@@ -65,11 +65,14 @@ static void inventoryMenu(Player *p)
 static void gameOver(const Player *p, int won)
 {
     printf("\n==============================================\n");
-    (void)won;
+    if (won)
+        printf("  VICTORY! The Dragon Lord is slain, %s!\n", p->name);
+    else
         printf("  GAME OVER. %s has fallen on floor %d...\n", p->name, p->floor);
     printf("==============================================\n");
 
     int score = calcScore(p);
+    if (won) score += 500;
     printf("Final score: %d\n", score);
     printf("Level %d | Steps %d | Monsters slain %d | Gold %d\n", p->level, p->steps, p->kills, p->gold);
 }
@@ -105,6 +108,12 @@ static void gameLoop(Player *p, Dungeon *d)
                 if (res == -1) {
                     gameOver(p, 0);
                     running = 0;
+                }
+                else if (res == 2) {
+                    gameOver(p, 1);
+                    running = 0;
+                } else if (res == 1) {
+                    nextFloor(p, d);
                 }
                 break;
             }

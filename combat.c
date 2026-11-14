@@ -132,5 +132,12 @@ int fight(Player *p, Monster *m, int isBoss)
     p->gold += m->goldReward;
     p->kills++;
     gainXp(p, m->xpReward);
+    if (!isBoss && rand() % 100 < 25) {              /* 25% chance of loot */
+        Item drop = randomItem(p->floor);
+        printf("The %s dropped: ", m->name);
+        printItem(&drop);
+        printf("\n");
+        addItem(p, drop);
+    }
     return 1;
 }

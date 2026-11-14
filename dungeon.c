@@ -76,6 +76,9 @@ void generateDungeon(Dungeon *d, const Player *p)
     } while (!reach[exitY][exitX]);
 
     placeRandom(d, reach, T_MONSTER, 4 + p->floor);
+    placeRandom(d, reach, T_GOLD, 3);
+    placeRandom(d, reach, T_CHEST, 2);
+    placeRandom(d, reach, T_TRAP, 2 + p->floor / 2);
 
     revealAround(d, 0, 0);
 }
@@ -140,10 +143,52 @@ int handleTile(Player *p, Dungeon *d, int prevX, int prevY)
             else { p->x = prevX; p->y = prevY; }      /* fled: step back */
             break;
         }
+        case T_GOLD: {
+            int gold = 10 + rand() % (12 * p->floor);
+            p->gold += gold;
+            printf("\nYou found %d gold coins!\n", gold);
+            *tile = T_EMPTY;
+            break;
+        }
+        case T_CHEST: {
+            Item it = randomItem(p->floor);
+            printf("\nYou open a chest and find: ");
+            printItem(&it);
+            printf("\n");
+            addItem(p, it);
+            *tile = T_EMPTY;
+            break;
+        }
+        case T_TRAP: {
+            int dmg = 4 + p->floor * 3;
+            p->hp -= dmg;
+            printf("\nA trap springs! You take %d damage.\n", dmg);
+            *tile = T_EMPTY;
+            if (p->hp <= 0) return -1;
+            break;
+        }
+        case T_EXIT:
+            printf("\nYou found the stairs leading down...\n");
+            return 1;
+        case T_BOSS: {
+            Monster boss = makeMonster(p->floor, 1);
+            printf("\nThe Dragon Lord rises from his throne!\n");
+            return (fight(p, &boss, 1) == 1) ? 2 : -1;
+        }
         default:
             break;
     }
     return 0;
+}
+
+void nextFloor(Player *p, Dungeon *d)
+{
+    p->floor++;
+    p->x = 0;
+    p->y = 0;
+    p->hp = MIN(p->maxHp, p->hp + p->maxHp / 4);      /* a short rest */
+    printf("You descend to floor %d and rest for a moment.\n", p->floor);
+    generateDungeon(d, p);
 }
 
 /* recursive: counts the monsters from cell number idx to the end of the map */

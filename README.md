@@ -16,6 +16,7 @@ Or use `make`.
 - Backpack that grows as needed, with equippable weapons and armor
 - Random dungeon floors with walls, fog of war, and a reachable-exit check (flood fill)
 - Turn-based combat, XP and levelling, 10 monster types
+- Gold, chests, traps, loot drops, 5 floors and a final boss
 
 ## Controls
 
