@@ -18,7 +18,18 @@
 
 
 /* ---------- data types ---------- */
+typedef enum { CLASS_WARRIOR, CLASS_MAGE, CLASS_ROGUE, CLASS_COUNT } ClassType;
 
+typedef struct {
+    char      name[NAME_LEN];
+    ClassType cls;
+    int       hp, maxHp;
+    int       baseAttack, baseDefense;
+    int       level, xp;
+    int       gold, kills;
+    int       floor;
+    int       x, y;                 /* x = column, y = row */
+} Player;
 
 
 
@@ -29,6 +40,14 @@ void getLine(char *buf, int n);
 char getChoice(void);
 int  getNumber(void);
 
+/* ---------- player.c ---------- */
+Player     *createPlayer(const char *name, ClassType cls);
+void        freePlayer(Player *p);
+const char *className(ClassType c);
+void        showClassList(void);
+void        showStats(const Player *p);
+int         totalAttack(const Player *p);
+int         totalDefense(const Player *p);
 
 
 

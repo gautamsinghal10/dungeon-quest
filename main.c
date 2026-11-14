@@ -24,9 +24,31 @@ static void showHelp(void)
     printf("Your score goes into the high-score table when the game ends.\n");
 }
 
+static Player *createHero(void)
+{
+    char name[NAME_LEN];
+    printf("\nEnter your hero's name: ");
+    getLine(name, sizeof(name));
+    if (name[0] == '\0')
+        strcpy(name, "Hero");
+
+    printf("\nChoose your class:\n");
+    showClassList();
+
+    int choice = 0;
+    while (choice < 1 || choice > CLASS_COUNT) {
+        printf("Class number: ");
+        choice = getNumber();
+    }
+    return createPlayer(name, (ClassType)(choice - 1));
+}
+
 static void playNewGame(void)
 {
-    printf("\nThe game is not ready yet. Come back soon!\n");
+    Player *p = createHero();
+    printf("\nWelcome, %s the %s!\n", p->name, className(p->cls));
+    showStats(p);
+    freePlayer(p);
 }
 
 enum { M_NEW, M_LOAD, M_SCORES, M_SETTINGS, M_HELP, M_EXIT };

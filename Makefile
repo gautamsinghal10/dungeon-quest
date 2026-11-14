@@ -2,6 +2,7 @@
 CC     = gcc
 CFLAGS = -Wall -Wextra -std=c99
 OBJS   = main.o utils.o
+OBJS  += player.o
 
 dungeon_quest: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
