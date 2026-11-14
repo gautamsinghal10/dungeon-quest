@@ -62,11 +62,24 @@ static void inventoryMenu(Player *p)
     }
 }
 
+static void gameOver(const Player *p, int won)
+{
+    printf("\n==============================================\n");
+    (void)won;
+        printf("  GAME OVER. %s has fallen on floor %d...\n", p->name, p->floor);
+    printf("==============================================\n");
+
+    int score = calcScore(p);
+    printf("Final score: %d\n", score);
+    printf("Level %d | Steps %d | Monsters slain %d | Gold %d\n", p->level, p->steps, p->kills, p->gold);
+}
+
 static void printStatus(const Dungeon *d, const Player *p)
 {
     (void)d;
     printf("HP %d/%d", p->hp, p->maxHp);
     printf(" | Lv %d | Gold %d", p->level, p->gold);
+    printf(" | Monsters left: %d", countMonsters(d, 0));
     printf("\n");
 }
 
@@ -83,9 +96,15 @@ static void gameLoop(Player *p, Dungeon *d)
         char ch = getChoice();
         switch (ch) {
             case 'w': case 'a': case 's': case 'd': {
+                int px = p->x, py = p->y;
                 if (!movePlayer(p, d, ch)) {
                     printf("Something blocks your way.\n");
                     break;
+                }
+                int res = handleTile(p, d, px, py);
+                if (res == -1) {
+                    gameOver(p, 0);
+                    running = 0;
                 }
                 break;
             }

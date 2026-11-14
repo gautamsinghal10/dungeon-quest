@@ -25,6 +25,21 @@ static void placeWalls(Dungeon *d, int count)
     }
 }
 
+/* put `count` copies of `tile` on random empty cells the player can reach */
+static void placeRandom(Dungeon *d, int reach[MAP_SIZE][MAP_SIZE], char tile, int count)
+{
+    int tries = 0;
+    while (count > 0 && tries < 2000) {
+        int r = rand() % MAP_SIZE;
+        int c = rand() % MAP_SIZE;
+        tries++;
+        if (d->cells[r][c] == T_EMPTY && reach[r][c] && !(r == 0 && c == 0)) {
+            d->cells[r][c] = tile;
+            count--;
+        }
+    }
+}
+
 /* reveal the 3x3 area around (x, y) */
 static void revealAround(Dungeon *d, int x, int y)
 {
@@ -59,6 +74,8 @@ void generateDungeon(Dungeon *d, const Player *p)
         placeWalls(d, 10 + p->floor * 2);
         floodFill(d, reach, 0, 0);
     } while (!reach[exitY][exitX]);
+
+    placeRandom(d, reach, T_MONSTER, 4 + p->floor);
 
     revealAround(d, 0, 0);
 }
@@ -107,4 +124,33 @@ int movePlayer(Player *p, Dungeon *d, char dir)
     p->steps++;
     revealAround(d, nx, ny);
     return 1;
+}
+
+/* returns: 0 = continue, 1 = reached stairs, 2 = boss beaten (win), -1 = player died */
+int handleTile(Player *p, Dungeon *d, int prevX, int prevY)
+{
+    char *tile = &d->cells[p->y][p->x];      /* pointer to the current cell */
+
+    switch (*tile) {
+        case T_MONSTER: {
+            Monster m = makeMonster(p->floor, 0);
+            int result = fight(p, &m, 0);
+            if (result == 0) return -1;
+            if (result == 1) *tile = T_EMPTY;
+            else { p->x = prevX; p->y = prevY; }      /* fled: step back */
+            break;
+        }
+        default:
+            break;
+    }
+    return 0;
+}
+
+/* recursive: counts the monsters from cell number idx to the end of the map */
+int countMonsters(const Dungeon *d, int idx)
+{
+    if (idx >= MAP_SIZE * MAP_SIZE)
+        return 0;
+    int here = (d->cells[idx / MAP_SIZE][idx % MAP_SIZE] == T_MONSTER) ? 1 : 0;
+    return here + countMonsters(d, idx + 1);
 }

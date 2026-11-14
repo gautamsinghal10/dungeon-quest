@@ -83,9 +83,10 @@ int totalDefense(const Player *p)
 void showStats(const Player *p)
 {
     printf("\n--- %s the %s ---\n", p->name, className(p->cls));
-    printf("Level %d\n", p->level);
+    printf("Level %d   XP %d/%d\n", p->level, p->xp, xpNeeded(p->level));
     printf("HP %d/%d   Attack %d   Defense %d\n", p->hp, p->maxHp, totalAttack(p), totalDefense(p));
     printf("Gold %d\n", p->gold);
+    printf("Monsters slain %d   Floor %d/%d\n", p->kills, p->floor, MAX_FLOORS);
     printf("Weapon: ");
     if (p->hasWeapon) printItem(&p->weapon); else printf("none");
     printf("\nArmor:  ");
@@ -170,4 +171,34 @@ void showInventory(const Player *p)
         printItem(&p->inventory[i]);
         printf("\n");
     }
+}
+
+/* ---------- levelling ---------- */
+
+/* recursive: XP needed to go from `level` to `level + 1` */
+int xpNeeded(int level)
+{
+    if (level <= 1)
+        return 30;
+    return xpNeeded(level - 1) + level * 20;
+}
+
+void gainXp(Player *p, int amount)
+{
+    p->xp += amount;
+    while (p->xp >= xpNeeded(p->level)) {
+        const ClassInfo *c = &classTable[p->cls];
+        p->xp -= xpNeeded(p->level);
+        p->level++;
+        p->maxHp += c->hpGain;
+        p->hp = p->maxHp;
+        p->baseAttack += c->attackGain;
+        p->baseDefense += c->defenseGain;
+        printf("*** LEVEL UP! You are now level %d. HP restored! ***\n", p->level);
+    }
+}
+
+int calcScore(const Player *p)
+{
+    return p->gold * 2 + p->kills * 10 + p->floor * 100 + p->level * 50;
 }

@@ -5,6 +5,7 @@ OBJS   = main.o utils.o
 OBJS  += player.o
 OBJS  += items.o
 OBJS  += dungeon.o
+OBJS  += combat.o
 
 dungeon_quest: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)

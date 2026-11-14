@@ -70,6 +70,16 @@ typedef struct {
     int       hasWeapon, hasArmor;
 } Player;
 
+#define SPECIAL_NONE   0
+#define SPECIAL_POISON 1
+#define SPECIAL_DRAIN  2
+
+typedef struct {
+    char name[ITEM_NAME_LEN];
+    int  hp, maxHp, attack, defense;
+    int  xpReward, goldReward;
+    int  special;
+} Monster;
 
 typedef struct {
     char cells[MAP_SIZE][MAP_SIZE];
@@ -95,18 +105,26 @@ void        addItem(Player *p, Item it);
 void        removeItem(Player *p, int index);
 void        useItem(Player *p, int index);
 void        showInventory(const Player *p);
+int         xpNeeded(int level);              /* recursive */
+void        gainXp(Player *p, int amount);
+int         calcScore(const Player *p);
 
 /* ---------- items.c ---------- */
 Item makeItem(const char *name, ItemType type, int value, int price);
 Item randomItem(int floor);
 void printItem(const Item *it);
 
+/* ---------- combat.c ---------- */
+Monster makeMonster(int floor, int isBoss);
+int     fight(Player *p, Monster *m, int isBoss);
 
 /* ---------- dungeon.c ---------- */
 void generateDungeon(Dungeon *d, const Player *p);
 void printDungeon(const Dungeon *d, const Player *p);
 int  movePlayer(Player *p, Dungeon *d, char dir);
 void revealAll(Dungeon *d);
+int  handleTile(Player *p, Dungeon *d, int prevX, int prevY);
+int  countMonsters(const Dungeon *d, int idx);   /* recursive */
 
 
 
