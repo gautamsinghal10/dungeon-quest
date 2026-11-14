@@ -86,6 +86,29 @@ void generateDungeon(Dungeon *d, const Player *p)
     revealAround(d, 0, 0);
 }
 
+static void printTile(char ch)
+{
+    const char *color = C_RESET;
+    switch (ch) {
+        case '@':           color = C_BOLD C_GREEN;  break;
+        case T_MONSTER:     color = C_RED;           break;
+        case T_BOSS:        color = C_BOLD C_RED;    break;
+        case T_GOLD:        color = C_YELLOW;        break;
+        case T_CHEST:       color = C_CYAN;          break;
+        case T_TRAP:        color = C_MAGENTA;       break;
+        case T_EXIT:        color = C_GREEN;         break;
+        case T_SHOP:        color = C_BLUE;          break;
+        case T_FOUNTAIN:    color = C_CYAN;          break;
+        case T_WALL:
+        case '?':           color = C_GREY;          break;
+        default:            break;
+    }
+    setColor(color);
+    printf("%c", ch);
+    setColor(C_RESET);
+    printf(" ");
+}
+
 void printDungeon(const Dungeon *d, const Player *p)
 {
     printf("\n===== FLOOR %d / %d =====\n", p->floor, MAX_FLOORS);
@@ -99,7 +122,7 @@ void printDungeon(const Dungeon *d, const Player *p)
                 ch = d->cells[r][c];
             else
                 ch = '?';
-            printf("%c ", ch);
+            printTile(ch);
         }
         printf("\n");
     }

@@ -87,7 +87,9 @@ static void gameOver(const Player *p, int won)
 static void printStatus(const Dungeon *d, const Player *p)
 {
     (void)d;
-    printf("HP %d/%d", p->hp, p->maxHp);
+    printf("HP ");
+    printBar(p->hp, p->maxHp, 12, (p->hp * 3 < p->maxHp) ? C_RED : C_GREEN);
+    printf(" %d/%d", p->hp, p->maxHp);
     printf(" | MP %d/%d", p->mana, p->maxMana);
     if (p->poisonTurns > 0) printf(" | POISONED");
     printf(" | Lv %d | Gold %d", p->level, p->gold);
@@ -207,12 +209,32 @@ static void loadGameMenu(void)
     freePlayer(p);
 }
 
+static void settingsMenu(void)
+{
+    static const char *diffNames[] = {"Easy", "Normal", "Hard"};
+    int open = 1;
+
+    while (open) {
+        printf("\n===== SETTINGS =====\n");
+        printf("1. Colours: %s\n", g_useColor ? "ON" : "OFF");
+        printf("2. Difficulty: %s\n", diffNames[g_difficulty]);
+        printf("3. Back\nChoice: ");
+        switch (getNumber()) {
+            case 1: g_useColor = !g_useColor;              break;
+            case 2: g_difficulty = (g_difficulty + 1) % 3; break;
+            case 3: open = 0;                              break;
+            default: printf("Invalid choice.\n");
+        }
+    }
+}
+
 enum { M_NEW, M_LOAD, M_SCORES, M_SETTINGS, M_HELP, M_EXIT };
 static const char *menuNames[] = {"New Game", "Load Game", "High Scores", "Settings", "How to Play", "Exit"};
 
 int main(void)
 {
     srand((unsigned int)time(NULL));
+    enableColorSupport();
     showIntro();
 
     int running = 1;
@@ -223,6 +245,7 @@ int main(void)
         options[n++] = M_NEW;
         options[n++] = M_LOAD;
         options[n++] = M_SCORES;
+        options[n++] = M_SETTINGS;
         options[n++] = M_HELP;
         options[n++] = M_EXIT;
 
@@ -241,6 +264,7 @@ int main(void)
             case M_NEW:      playNewGame();   break;
             case M_LOAD:     loadGameMenu();  break;
             case M_SCORES:   showHighScores(); break;
+            case M_SETTINGS: settingsMenu();  break;
             case M_HELP:     showHelp();      break;
             case M_EXIT:     running = 0;     break;
             default:         break;

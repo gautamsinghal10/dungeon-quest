@@ -23,6 +23,9 @@ static const MonsterTemplate monsterTable[] = {
 };
 #define MONSTER_TYPES ((int)(sizeof(monsterTable) / sizeof(monsterTable[0])))
 
+/* monster strength in percent for Easy / Normal / Hard */
+static const int difficultyPct[3] = {80, 100, 130};
+
 /* ---------- class skills ---------- */
 typedef struct {
     const char *name;
@@ -96,6 +99,8 @@ Monster makeMonster(int floor, int isBoss)
         m.goldReward = t->gold + rand() % 6;
         m.special = t->special;
     }
+    m.hp = m.hp * difficultyPct[g_difficulty] / 100;
+    m.attack = m.attack * difficultyPct[g_difficulty] / 100;
     m.maxHp = m.hp;
     return m;
 }
@@ -141,7 +146,12 @@ int fight(Player *p, Monster *m, int isBoss)
         printf("There is no escape from this fight!\n");
 
     while (p->hp > 0 && m->hp > 0) {
-        printf("\n%s HP: %d/%d   |   %s HP: %d/%d\n", p->name, p->hp, p->maxHp, m->name, m->hp, m->maxHp);
+        printf("\n%-12s ", p->name);
+        printBar(p->hp, p->maxHp, 20, C_GREEN);
+        printf(" %d/%d\n", p->hp, p->maxHp);
+        printf("%-12s ", m->name);
+        printBar(m->hp, m->maxHp, 20, C_RED);
+        printf(" %d/%d\n", m->hp, m->maxHp);
         printf("[a] attack  ");
         printf("[s] %s (%d/%d mana)  ", skillName(p->cls), p->mana, p->maxMana);
         printf("[u] use item  ");

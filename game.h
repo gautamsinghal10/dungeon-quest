@@ -35,6 +35,16 @@
 #define MAX_SLOTS      3
 #define MAX_SCORES     5
 #define SCORE_FILE     "highscores.txt"
+/* ANSI colour codes (used only when colours are switched on) */
+#define C_RESET   "\x1b[0m"
+#define C_BOLD    "\x1b[1m"
+#define C_RED     "\x1b[31m"
+#define C_GREEN   "\x1b[32m"
+#define C_YELLOW  "\x1b[33m"
+#define C_BLUE    "\x1b[34m"
+#define C_MAGENTA "\x1b[35m"
+#define C_CYAN    "\x1b[36m"
+#define C_GREY    "\x1b[90m"
 
 /* ---------- data types ---------- */
 typedef enum { CLASS_WARRIOR, CLASS_MAGE, CLASS_ROGUE, CLASS_COUNT } ClassType;
@@ -102,11 +112,16 @@ typedef struct {
     int  cls;
 } ScoreEntry;
 
+extern int g_useColor;       /* 1 = use ANSI colours */
+extern int g_difficulty;     /* 0 = easy, 1 = normal, 2 = hard */
 
 /* ---------- utils.c ---------- */
 void getLine(char *buf, int n);
 char getChoice(void);
 int  getNumber(void);
+void enableColorSupport(void);
+void setColor(const char *code);
+void printBar(int cur, int max, int width, const char *color);
 
 /* ---------- player.c ---------- */
 Player     *createPlayer(const char *name, ClassType cls);
