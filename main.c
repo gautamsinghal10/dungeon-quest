@@ -43,11 +43,31 @@ static Player *createHero(void)
     return createPlayer(name, (ClassType)(choice - 1));
 }
 
+/* lets the player use or equip items until they type 0 */
+static void inventoryMenu(Player *p)
+{
+    while (1) {
+        showInventory(p);
+        if (p->invCount == 0)
+            return;
+        printf("Item number to use or equip (0 to go back): ");
+        int n = getNumber();
+        if (n == 0)
+            return;
+        if (n < 1 || n > p->invCount) {
+            printf("Invalid choice.\n");
+            continue;
+        }
+        useItem(p, n - 1);
+    }
+}
+
 static void playNewGame(void)
 {
     Player *p = createHero();
     printf("\nWelcome, %s the %s!\n", p->name, className(p->cls));
     showStats(p);
+    inventoryMenu(p);
     freePlayer(p);
 }
 

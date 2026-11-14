@@ -16,9 +16,29 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define ITEM_NAME_LEN  24
 
 /* ---------- data types ---------- */
 typedef enum { CLASS_WARRIOR, CLASS_MAGE, CLASS_ROGUE, CLASS_COUNT } ClassType;
+typedef enum {
+    ITEM_POTION,
+    ITEM_WEAPON,
+    ITEM_ARMOR
+} ItemType;
+
+/* only one effect is used at a time, so a union saves memory */
+typedef union {
+    int healAmount;      /* potion */
+    int attackBonus;     /* weapon */
+    int defenseBonus;    /* armor  */
+} ItemEffect;
+
+typedef struct {
+    char       name[ITEM_NAME_LEN];
+    ItemType   type;
+    ItemEffect effect;
+    int        price;
+} Item;
 
 typedef struct {
     char      name[NAME_LEN];
@@ -29,6 +49,10 @@ typedef struct {
     int       gold, kills;
     int       floor;
     int       x, y;                 /* x = column, y = row */
+    Item     *inventory;            /* dynamic array (malloc / realloc) */
+    int       invCount, invCap;
+    Item      weapon, armor;        /* equipped items */
+    int       hasWeapon, hasArmor;
 } Player;
 
 
@@ -48,7 +72,15 @@ void        showClassList(void);
 void        showStats(const Player *p);
 int         totalAttack(const Player *p);
 int         totalDefense(const Player *p);
+void        addItem(Player *p, Item it);
+void        removeItem(Player *p, int index);
+void        useItem(Player *p, int index);
+void        showInventory(const Player *p);
 
+/* ---------- items.c ---------- */
+Item makeItem(const char *name, ItemType type, int value, int price);
+Item randomItem(int floor);
+void printItem(const Item *it);
 
 
 

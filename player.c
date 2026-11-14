@@ -47,12 +47,20 @@ Player *createPlayer(const char *name, ClassType cls)
     p->floor = 1;
     p->x = 0;
     p->y = 0;
+    p->hasWeapon = 0;
+    p->hasArmor = 0;
+    p->invCap = 4;
+    p->invCount = 0;
+    p->inventory = (Item *)malloc(sizeof(Item) * p->invCap);
+    if (p->inventory == NULL) { printf("Out of memory!\n"); exit(1); }
+    addItem(p, makeItem("Small Potion", ITEM_POTION, 25, 10));    /* starter item */
     return p;
 }
 
 void freePlayer(Player *p)
 {
     if (p == NULL) return;
+    free(p->inventory);
     free(p);
 }
 
@@ -60,12 +68,14 @@ void freePlayer(Player *p)
 int totalAttack(const Player *p)
 {
     int a = p->baseAttack;
+    if (p->hasWeapon) a += p->weapon.effect.attackBonus;
     return a;
 }
 
 int totalDefense(const Player *p)
 {
     int d = p->baseDefense;
+    if (p->hasArmor) d += p->armor.effect.defenseBonus;
     return d;
 }
 
@@ -75,4 +85,88 @@ void showStats(const Player *p)
     printf("Level %d\n", p->level);
     printf("HP %d/%d   Attack %d   Defense %d\n", p->hp, p->maxHp, totalAttack(p), totalDefense(p));
     printf("Gold %d\n", p->gold);
+    printf("Weapon: ");
+    if (p->hasWeapon) printItem(&p->weapon); else printf("none");
+    printf("\nArmor:  ");
+    if (p->hasArmor) printItem(&p->armor); else printf("none");
+    printf("\n");
+}
+
+/* ---------- inventory ---------- */
+
+void addItem(Player *p, Item it)
+{
+    if (p->invCount == p->invCap) {               /* backpack full: grow the array */
+        int newCap = p->invCap * 2;
+        Item *tmp = (Item *)realloc(p->inventory, sizeof(Item) * newCap);
+        if (tmp == NULL) { printf("Your backpack is too heavy!\n"); return; }
+        p->inventory = tmp;
+        p->invCap = newCap;
+    }
+    p->inventory[p->invCount++] = it;
+}
+
+void removeItem(Player *p, int index)
+{
+    if (index < 0 || index >= p->invCount) return;
+    for (int i = index; i < p->invCount - 1; i++)
+        p->inventory[i] = p->inventory[i + 1];
+    p->invCount--;
+}
+
+void useItem(Player *p, int index)
+{
+    if (index < 0 || index >= p->invCount) {
+        printf("Invalid item.\n");
+        return;
+    }
+    Item chosen = p->inventory[index];     /* copy it, then take it out of the backpack */
+    removeItem(p, index);
+
+    switch (chosen.type) {
+        case ITEM_POTION: {
+            int before = p->hp;
+            p->hp = MIN(p->maxHp, p->hp + chosen.effect.healAmount);
+            printf("You drink the %s and recover %d HP.\n", chosen.name, p->hp - before);
+            break;
+        }
+        case ITEM_WEAPON: {
+            Item old = p->weapon;
+            int hadOld = p->hasWeapon;
+            p->weapon = chosen;
+            p->hasWeapon = 1;
+            printf("You equip the %s. Attack is now %d.\n", chosen.name, totalAttack(p));
+            if (hadOld) {
+                addItem(p, old);
+                printf("Your old %s goes back into the backpack.\n", old.name);
+            }
+            break;
+        }
+        case ITEM_ARMOR: {
+            Item old = p->armor;
+            int hadOld = p->hasArmor;
+            p->armor = chosen;
+            p->hasArmor = 1;
+            printf("You wear the %s. Defense is now %d.\n", chosen.name, totalDefense(p));
+            if (hadOld) {
+                addItem(p, old);
+                printf("Your old %s goes back into the backpack.\n", old.name);
+            }
+            break;
+        }
+    }
+}
+
+void showInventory(const Player *p)
+{
+    printf("\n--- Backpack (%d items) ---\n", p->invCount);
+    if (p->invCount == 0) {
+        printf("  (empty)\n");
+        return;
+    }
+    for (int i = 0; i < p->invCount; i++) {
+        printf("  %d. ", i + 1);
+        printItem(&p->inventory[i]);
+        printf("\n");
+    }
 }

@@ -13,3 +13,4 @@ Or use `make`.
 ## Features
 
 - Three classes (Warrior, Mage, Rogue) with different stats
+- Backpack that grows as needed, with equippable weapons and armor
