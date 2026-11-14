@@ -14,3 +14,17 @@ Or use `make`.
 
 - Three classes (Warrior, Mage, Rogue) with different stats
 - Backpack that grows as needed, with equippable weapons and armor
+- Random dungeon floors with walls, fog of war, and a reachable-exit check (flood fill)
+
+## Controls
+
+| Key | Action |
+|-----|--------|
+| w / a / s / d | move up / left / down / right (then Enter) |
+| i | open backpack (use or equip items) |
+| c | show stats |
+| q | quit to menu |
+
+## Map symbols
+
+`@` you, `?` unknown, `#` wall, `M` monster, `$` gold, `C` chest, `^` trap, `>` stairs, `B` boss, `S` shop, `F` fountain

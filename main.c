@@ -62,12 +62,63 @@ static void inventoryMenu(Player *p)
     }
 }
 
+static void printStatus(const Dungeon *d, const Player *p)
+{
+    (void)d;
+    printf("HP %d/%d", p->hp, p->maxHp);
+    printf(" | Lv %d | Gold %d", p->level, p->gold);
+    printf("\n");
+}
+
+static void gameLoop(Player *p, Dungeon *d)
+{
+    int running = 1;
+
+    while (running) {
+        printDungeon(d, p);
+        printStatus(d, p);
+        printf("[w/a/s/d] move  [i] inventory  [c] stats  ");
+        printf("[q] quit: ");
+
+        char ch = getChoice();
+        switch (ch) {
+            case 'w': case 'a': case 's': case 'd': {
+                if (!movePlayer(p, d, ch)) {
+                    printf("Something blocks your way.\n");
+                    break;
+                }
+                break;
+            }
+            case 'i':
+                inventoryMenu(p);
+                break;
+            case 'c':
+                showStats(p);
+                break;
+            case 'q':
+                printf("Return to the menu? Unsaved progress is lost. (y/n): ");
+                if (getChoice() == 'y')
+                    running = 0;
+                break;
+#ifdef DEBUG
+            case 'x':
+                revealAll(d);
+                printf("[DEBUG] whole map revealed\n");
+                break;
+#endif
+            default:
+                printf("Unknown command.\n");
+        }
+    }
+}
+
 static void playNewGame(void)
 {
     Player *p = createHero();
     printf("\nWelcome, %s the %s!\n", p->name, className(p->cls));
-    showStats(p);
-    inventoryMenu(p);
+    Dungeon d;
+    generateDungeon(&d, p);
+    gameLoop(p, &d);
     freePlayer(p);
 }
 

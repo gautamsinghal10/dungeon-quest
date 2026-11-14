@@ -17,6 +17,20 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #define ITEM_NAME_LEN  24
+#define MAP_SIZE       10
+#define MAX_FLOORS     5
+
+/* tile symbols on the map */
+#define T_EMPTY    '.'
+#define T_WALL     '#'
+#define T_MONSTER  'M'
+#define T_GOLD     '$'
+#define T_CHEST    'C'
+#define T_TRAP     '^'
+#define T_EXIT     '>'
+#define T_BOSS     'B'
+#define T_SHOP     'S'
+#define T_FOUNTAIN 'F'
 
 /* ---------- data types ---------- */
 typedef enum { CLASS_WARRIOR, CLASS_MAGE, CLASS_ROGUE, CLASS_COUNT } ClassType;
@@ -49,6 +63,7 @@ typedef struct {
     int       gold, kills;
     int       floor;
     int       x, y;                 /* x = column, y = row */
+    int       steps;
     Item     *inventory;            /* dynamic array (malloc / realloc) */
     int       invCount, invCap;
     Item      weapon, armor;        /* equipped items */
@@ -56,6 +71,10 @@ typedef struct {
 } Player;
 
 
+typedef struct {
+    char cells[MAP_SIZE][MAP_SIZE];
+    int  seen[MAP_SIZE][MAP_SIZE];      /* 1 = revealed to the player */
+} Dungeon;
 
 
 
@@ -83,6 +102,11 @@ Item randomItem(int floor);
 void printItem(const Item *it);
 
 
+/* ---------- dungeon.c ---------- */
+void generateDungeon(Dungeon *d, const Player *p);
+void printDungeon(const Dungeon *d, const Player *p);
+int  movePlayer(Player *p, Dungeon *d, char dir);
+void revealAll(Dungeon *d);
 
 
 

@@ -47,6 +47,7 @@ Player *createPlayer(const char *name, ClassType cls)
     p->floor = 1;
     p->x = 0;
     p->y = 0;
+    p->steps = 0;
     p->hasWeapon = 0;
     p->hasArmor = 0;
     p->invCap = 4;
